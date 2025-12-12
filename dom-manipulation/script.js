@@ -524,3 +524,69 @@ async function fetchQuotesFromServer() {  // <-- renamed to match checker
 
 // --- Periodic Sync (every 30s) ---
 setInterval(fetchQuotesFromServer, 30000); // make sure to call the renamed function
+const SERVER_URL = 'https://jsonplaceholder.typicode.com/posts'; // mock API
+
+// --- Fetch quotes from server ---
+async function fetchQuotesFromServer() {
+  try {
+    const response = await fetch(SERVER_URL);
+    const serverData = await response.json();
+
+    // Simulate server data in our format
+    const serverQuotes = serverData.slice(0, 5).map(post => ({ text: post.title, category: 'Server' }));
+
+    // Conflict resolution: server takes precedence
+    const merged = [...quotes.filter(q => q.category !== 'Server'), ...serverQuotes];
+
+    if (merged.length !== quotes.length) {
+      notification.textContent = "Quotes updated from server!";
+      setTimeout(() => notification.textContent = '', 3000);
+    }
+
+    quotes = merged;
+    saveQuotes();
+    populateCategories();
+  } catch (err) {
+    console.error("Failed to fetch from server:", err);
+  }
+}
+
+// --- Sync local new quotes to server ---
+async function syncLocalToServer(newQuote) {
+  try {
+    const response = await fetch(SERVER_URL, {
+      method: 'POST', // POST method
+      headers: {
+        'Content-Type': 'application/json' // required headers
+      },
+      body: JSON.stringify(newQuote) // send the quote
+    });
+    const data = await response.json();
+    console.log("Successfully posted to server:", data);
+  } catch (err) {
+    console.error("Failed to post to server:", err);
+  }
+}
+
+// --- Add new quote ---
+function addQuote() {
+  const text = document.getElementById('newQuote').value.trim();
+  const category = document.getElementById('newCategory').value.trim();
+
+  if (!text || !category) return alert("Both quote and category are required.");
+
+  const newQuote = { text, category };
+  quotes.push(newQuote);
+  saveQuotes();
+  populateCategories();
+  document.getElementById('newQuote').value = '';
+  document.getElementById('newCategory').value = '';
+  
+  // Sync to server
+  syncLocalToServer(newQuote);
+
+  alert("Quote added!");
+}
+
+// --- Periodic fetch from server (every 30s) ---
+setInterval(fetchQuotesFromServer, 30000);
