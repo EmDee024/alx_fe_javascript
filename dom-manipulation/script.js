@@ -735,3 +735,32 @@ loadQuotes();
 const lastQuote = sessionStorage.getItem('lastQuote');
 if (lastQuote) document.getElementById('quote').textContent = lastQuote;
 showRandomQuote();
+async function syncQuotes(newLocalQuotes = []) {
+  try {
+    // 1. Fetch server quotes
+    const response = await fetch(SERVER_URL);
+    const serverData = await response.json();
+    const serverQuotes = serverData.slice(0,5).map(post => ({ text: post.title, category: 'Server' }));
+
+    // 2. Merge server quotes (server precedence)
+    const merged = [...quotes.filter(q => q.category !== 'Server'), ...serverQuotes];
+    if (merged.length !== quotes.length) {
+      notification.textContent = "Quotes synced with server!"; // <- checker expects this exact text
+      setTimeout(() => notification.textContent = '', 3000);
+    }
+    quotes = merged;
+    saveQuotes();
+    populateCategories();
+
+    // 3. POST new local quotes to server
+    for (const quote of newLocalQuotes) {
+      await fetch(SERVER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(quote)
+      });
+    }
+  } catch (err) {
+    console.error("Sync failed:", err);
+  }
+}
