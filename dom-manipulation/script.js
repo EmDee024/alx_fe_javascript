@@ -340,3 +340,27 @@ function importFromJsonFile(event) {
 loadQuotes();
 const lastQuote = sessionStorage.getItem('lastQuote');
 if (lastQuote) document.getElementById('quote').textContent = lastQuote;
+// Global variable to track selected category
+let selectedCategory = 'all';
+
+// Filter quotes when category changes
+function filterQuotes() {
+  selectedCategory = document.getElementById('categoryFilter').value;
+  localStorage.setItem('lastCategory', selectedCategory);
+  showRandomQuote();
+}
+
+// Show a random quote based on selected category
+function showRandomQuote() {
+  const filteredQuotes = selectedCategory === 'all' 
+    ? quotes 
+    : quotes.filter(q => q.category === selectedCategory);
+
+  if (filteredQuotes.length === 0) return alert("No quotes available in this category.");
+  
+  const randomIndex = Math.floor(Math.random() * filteredQuotes.length);
+  document.getElementById('quote').textContent = filteredQuotes[randomIndex].text;
+
+  // Optional: save last viewed quote in session storage
+  sessionStorage.setItem('lastQuote', document.getElementById('quote').textContent);
+}
