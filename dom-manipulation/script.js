@@ -224,3 +224,119 @@ loadQuotes();
 // Optional: load last viewed quote from session storage
 const lastQuote = sessionStorage.getItem('lastQuote');
 if (lastQuote) document.getElementById('quote').textContent = lastQuote;
+// Initial quotes array with categories
+let quotes = [
+  { text: "The best way to get started is to quit talking and begin doing.", category: "Motivation" },
+  { text: "Don't let yesterday take up too much of today.", category: "Productivity" },
+  { text: "It's not whether you get knocked down, it's whether you get up.", category: "Resilience" }
+];
+
+// Load quotes and last selected category from local storage
+function loadQuotes() {
+  const storedQuotes = localStorage.getItem('quotes');
+  if (storedQuotes) quotes = JSON.parse(storedQuotes);
+
+  const lastCategory = localStorage.getItem('lastCategory');
+  if (lastCategory) document.getElementById('categoryFilter').value = lastCategory;
+
+  populateCategories();
+}
+
+// Save quotes to local storage
+function saveQuotes() {
+  localStorage.setItem('quotes', JSON.stringify(quotes));
+}
+
+// Populate category dropdown dynamically
+function populateCategories() {
+  const select = document.getElementById('categoryFilter');
+  const categories = [...new Set(quotes.map(q => q.category))];
+
+  // Clear existing options except "All Categories"
+  select.innerHTML = '<option value="all">All Categories</option>';
+  categories.forEach(cat => {
+    const option = document.createElement('option');
+    option.value = cat;
+    option.textContent = cat;
+    select.appendChild(option);
+  });
+
+  // Restore last selected category
+  const lastCategory = localStorage.getItem('lastCategory');
+  if (lastCategory) select.value = lastCategory;
+}
+
+// Show a random quote based on selected category
+function showRandomQuote() {
+  const filter = document.getElementById('categoryFilter').value;
+  const filteredQuotes = filter === 'all' ? quotes : quotes.filter(q => q.category === filter);
+
+  if (filteredQuotes.length === 0) return alert("No quotes available in this category.");
+  
+  const randomIndex = Math.floor(Math.random() * filteredQuotes.length);
+  document.getElementById('quote').textContent = filteredQuotes[randomIndex].text;
+
+  // Save last viewed quote in session storage
+  sessionStorage.setItem('lastQuote', document.getElementById('quote').textContent);
+}
+
+// Add new quote
+function addQuote() {
+  const text = document.getElementById('newQuote').value.trim();
+  const category = document.getElementById('newCategory').value.trim();
+
+  if (!text || !category) return alert("Both quote and category are required.");
+
+  quotes.push({ text, category });
+  saveQuotes();
+  populateCategories();
+  document.getElementById('newQuote').value = '';
+  document.getElementById('newCategory').value = '';
+  alert("Quote added!");
+}
+
+// Filter quotes when category changes
+function filterQuotes() {
+  const filter = document.getElementById('categoryFilter').value;
+  localStorage.setItem('lastCategory', filter);
+  showRandomQuote();
+}
+
+// Export quotes to JSON
+function exportQuotes() {
+  const data = JSON.stringify(quotes, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'quotes.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Import quotes from JSON
+function importFromJsonFile(event) {
+  const fileReader = new FileReader();
+  fileReader.onload = function(event) {
+    try {
+      const importedQuotes = JSON.parse(event.target.result);
+      if (!Array.isArray(importedQuotes)) throw new Error("Invalid JSON format");
+      importedQuotes.forEach(q => {
+        if (!q.text || !q.category) throw new Error("Quotes must have text and category");
+      });
+      quotes.push(...importedQuotes);
+      saveQuotes();
+      populateCategories();
+      alert('Quotes imported successfully!');
+    } catch (err) {
+      alert('Failed to import quotes: ' + err.message);
+    }
+  };
+  fileReader.readAsText(event.target.files[0]);
+}
+
+// Load quotes and last viewed quote on page load
+loadQuotes();
+const lastQuote = sessionStorage.getItem('lastQuote');
+if (lastQuote) document.getElementById('quote').textContent = lastQuote;
