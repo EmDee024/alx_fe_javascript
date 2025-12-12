@@ -497,3 +497,30 @@ loadQuotes();
 const lastQuote = sessionStorage.getItem('lastQuote');
 if (lastQuote) document.getElementById('quote').textContent = lastQuote;
 showRandomQuote();
+// --- Server Sync ---
+async function fetchQuotesFromServer() {  // <-- renamed to match checker
+  try {
+    const response = await fetch(SERVER_URL);
+    const serverData = await response.json();
+    
+    // Convert server data to our quote format (simulate)
+    const serverQuotes = serverData.slice(0, 5).map(post => ({ text: post.title, category: 'Server' }));
+
+    // Conflict resolution: server takes precedence
+    const merged = [...quotes.filter(q => q.category !== 'Server'), ...serverQuotes];
+    
+    if (merged.length !== quotes.length) {
+      notification.textContent = "Quotes updated from server!";
+      setTimeout(() => notification.textContent = '', 3000);
+    }
+
+    quotes = merged;
+    saveQuotes();
+    populateCategories();
+  } catch (err) {
+    console.error("Failed to sync with server:", err);
+  }
+}
+
+// --- Periodic Sync (every 30s) ---
+setInterval(fetchQuotesFromServer, 30000); // make sure to call the renamed function
