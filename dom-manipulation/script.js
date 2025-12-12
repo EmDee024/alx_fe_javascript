@@ -146,3 +146,81 @@ document.addEventListener("DOMContentLoaded", () => {
   // Display a random quote initially
   displayRandomQuote();
 });
+// Initial quotes array
+let quotes = [
+  "The best way to get started is to quit talking and begin doing.",
+  "Don't let yesterday take up too much of today.",
+  "It's not whether you get knocked down, it's whether you get up."
+];
+
+// Load quotes from local storage on init
+function loadQuotes() {
+  const storedQuotes = localStorage.getItem('quotes');
+  if (storedQuotes) {
+    quotes = JSON.parse(storedQuotes);
+  }
+}
+
+// Save quotes to local storage
+function saveQuotes() {
+  localStorage.setItem('quotes', JSON.stringify(quotes));
+}
+
+// Show a random quote
+function showRandomQuote() {
+  if (quotes.length === 0) return alert("No quotes available.");
+  const randomIndex = Math.floor(Math.random() * quotes.length);
+  const quote = quotes[randomIndex];
+  document.getElementById('quote').textContent = quote;
+
+  // Optional: save last viewed quote in session storage
+  sessionStorage.setItem('lastQuote', quote);
+}
+
+// Add new quote
+function addQuote() {
+  const input = document.getElementById('newQuote');
+  const newQuote = input.value.trim();
+  if (newQuote === "") return alert("Quote cannot be empty!");
+  quotes.push(newQuote);
+  saveQuotes();
+  input.value = "";
+  alert("Quote added!");
+}
+
+// Export quotes to JSON
+function exportQuotes() {
+  const data = JSON.stringify(quotes, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'quotes.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Import quotes from JSON file
+function importFromJsonFile(event) {
+  const fileReader = new FileReader();
+  fileReader.onload = function(event) {
+    try {
+      const importedQuotes = JSON.parse(event.target.result);
+      if (!Array.isArray(importedQuotes)) throw new Error("Invalid JSON format");
+      quotes.push(...importedQuotes);
+      saveQuotes();
+      alert('Quotes imported successfully!');
+    } catch (err) {
+      alert('Failed to import quotes: ' + err.message);
+    }
+  };
+  fileReader.readAsText(event.target.files[0]);
+}
+
+// Load quotes on page start
+loadQuotes();
+
+// Optional: load last viewed quote from session storage
+const lastQuote = sessionStorage.getItem('lastQuote');
+if (lastQuote) document.getElementById('quote').textContent = lastQuote;

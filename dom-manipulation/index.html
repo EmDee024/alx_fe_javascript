@@ -4,6 +4,29 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dynamic Quote Generator</title>
+<style>
+    body { font-family: Arial, sans-serif; padding: 20px; background-color: #f0f0f0; }
+    #quote { font-size: 1.5em; margin: 20px 0; }
+    button { margin: 5px; padding: 10px 15px; font-size: 1em; }
+    input, textarea { width: 100%; margin: 5px 0; padding: 8px; }
+  </style>
+</head>
+<body>
+
+  <h1>Dynamic Quote Generator</h1>
+
+  <div id="quote">Click "New Quote" to see a quote!</div>
+  <button onclick="showRandomQuote()">New Quote</button>
+
+  <h2>Add New Quote</h2>
+  <textarea id="newQuote" placeholder="Enter your quote"></textarea>
+  <button onclick="addQuote()">Add Quote</button>
+
+  <h2>JSON Import / Export</h2>
+  <button onclick="exportQuotes()">Export Quotes</button>
+  <input type="file" id="importFile" accept=".json" onchange="importFromJsonFile(event)" />
+
+  <script src="script.js"></script>
 </head>
 <body>
   <h1>Dynamic Quote Generator</h1>
