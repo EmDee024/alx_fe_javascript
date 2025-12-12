@@ -1,6 +1,0 @@
-# Ignore everything in the parent directory
-../*
-
-# But allow this folder
-!dom-manipulation/
-
